@@ -13,7 +13,7 @@ export interface Snapshot {
   slides: Slide[]
 }
 
-const databaseNamePrefix = 'PPTist'
+const databaseNamePrefix = 'Paperport'
 
 // 删除失效/过期的数据库
 // 应用关闭时（关闭或刷新浏览器），会将其数据库ID记录在 localStorage 中，表示该ID指向的数据库已失效
@@ -22,17 +22,21 @@ const databaseNamePrefix = 'PPTist'
 export const deleteDiscardedDB = async () => {
   const now = new Date().getTime()
 
-  const localStorageDiscardedDB = localStorage.getItem(LOCALSTORAGE_KEY_DISCARDED_DB)
-  const localStorageDiscardedDBList: string[] = localStorageDiscardedDB ? JSON.parse(localStorageDiscardedDB) : []
+  const localStorageDiscardedDB = localStorage.getItem(
+    LOCALSTORAGE_KEY_DISCARDED_DB
+  )
+  const localStorageDiscardedDBList: string[] = localStorageDiscardedDB
+    ? JSON.parse(localStorageDiscardedDB)
+    : []
 
   const databaseNames = await Dexie.getDatabaseNames()
-  const discardedDBNames = databaseNames.filter(name => {
+  const discardedDBNames = databaseNames.filter((name) => {
     if (name.indexOf(databaseNamePrefix) === -1) return false
-    
+
     const [prefix, id, time] = name.split('_')
     if (prefix !== databaseNamePrefix || !id || !time) return true
     if (localStorageDiscardedDBList.includes(id)) return true
-    if (now - (+time) >= 1000 * 60 * 60 * 12) return true
+    if (now - +time >= 1000 * 60 * 60 * 12) return true
 
     return false
   })
@@ -41,7 +45,7 @@ export const deleteDiscardedDB = async () => {
   localStorage.removeItem(LOCALSTORAGE_KEY_DISCARDED_DB)
 }
 
-class PPTistDB extends Dexie {
+class PaperportDB extends Dexie {
   public snapshots: Dexie.Table<Snapshot, number>
   public writingBoardImgs: Dexie.Table<writingBoardImg, number>
 
@@ -56,4 +60,4 @@ class PPTistDB extends Dexie {
   }
 }
 
-export const db = new PPTistDB()
+export const db = new PaperportDB()

@@ -1,13 +1,16 @@
 <template>
   <div class="export-dialog">
-    <Tabs 
-      :tabs="tabs" 
-      :value="dialogForExport" 
+    <Tabs
+      :tabs="tabs"
+      :value="dialogForExport"
       card
-      @update:value="key => setDialogForExport(key as DialogForExportTypes)" 
+      @update:value="key => setDialogForExport(key as DialogForExportTypes)"
     />
     <div class="content">
-      <component :is="currentDialogComponent" @close="setDialogForExport('')"></component>
+      <component
+        :is="currentDialogComponent"
+        @close="setDialogForExport('')"
+      ></component>
     </div>
   </div>
 </template>
@@ -36,20 +39,20 @@ const { dialogForExport } = storeToRefs(mainStore)
 const setDialogForExport = mainStore.setDialogForExport
 
 const tabs: TabItem[] = [
-  { key: 'pptist', label: '导出 pptist 文件' },
-  { key: 'pptx', label: '导出 PPTX' },
-  { key: 'image', label: '导出图片' },
-  { key: 'json', label: '导出 JSON' },
-  { key: 'pdf', label: '打印 / 导出 PDF' },
+  { key: 'ppt', label: 'Export ppt file' },
+  { key: 'pptx', label: 'Export PPTX' },
+  { key: 'image', label: 'Export image' },
+  { key: 'json', label: 'Export JSON' },
+  { key: 'pdf', label: 'Print/Export PDF' },
 ]
 
 const currentDialogComponent = computed<unknown>(() => {
   const dialogMap = {
-    'image': ExportImage,
-    'json': ExportJSON,
-    'pdf': ExportPDF,
-    'pptx': ExportPPTX,
-    'pptist': ExportSpecificFile,
+    image: ExportImage,
+    json: ExportJSON,
+    pdf: ExportPDF,
+    pptx: ExportPPTX,
+    pptist: ExportSpecificFile,
   }
   if (dialogForExport.value) return dialogMap[dialogForExport.value] || null
   return null

@@ -1,5 +1,4 @@
-// 自动获取 src\assets\fonts 路径下的字体文件列表，并替换相关的 SCSS 变量
-
+// Automatically obtain the font file list under the src\assets\fonts path and replace related SCSS variables
 /* eslint-disable no-console */
 
 const fs = require('fs')
@@ -24,7 +23,7 @@ const replaceSCSSVariable = (names) => {
         console.error(errs)
         process.exit(1)
       }
-      console.log('自动生成自定义字体列表完成')
+      console.log('Automatically generate custom font list completed')
     })
   })
 }

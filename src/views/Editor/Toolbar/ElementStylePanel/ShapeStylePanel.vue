@@ -1,7 +1,7 @@
 <template>
   <div class="shape-style-panel">
     <div class="title">
-      <span>点击替换形状</span>
+      <span>Click to replace shape</span>
       <IconDown />
     </div>
     <div class="shape-pool">
@@ -13,7 +13,7 @@
               :key="index"
               :shape="shape"
               @click="changeShape(shape)"
-              v-if="shape.title !== '任意多边形'"
+              v-if="shape.title !== 'arbitrary polygon'"
             />
           </template>
         </div>
@@ -26,8 +26,8 @@
         :value="fillType" 
         @update:value="value => updateFillType(value as 'fill' | 'gradient')"
         :options="[
-          { label: '纯色填充', value: 'fill' },
-          { label: '渐变填充', value: 'gradient' },
+        { label: 'Solid color fill', value: 'fill' },
+           { label: 'gradient fill', value: 'gradient' },
         ]"
       />
       <div style="width: 10px;"></div>
@@ -46,15 +46,15 @@
         @update:value="value => updateGradient({ type: value as 'linear' | 'radial' })"
         v-else
         :options="[
-          { label: '线性渐变', value: 'linear' },
-          { label: '径向渐变', value: 'radial' },
+         { label: 'linear gradient', value: 'linear' },
+           { label: 'radial gradient', value: 'radial' },
         ]"
       />
     </div>
     
     <template v-if="fillType === 'gradient'">
       <div class="row">
-        <div style="width: 40%;">起点颜色：</div>
+        <div style="width: 40%;">Starting point color: </div>
         <Popover trigger="click" style="width: 60%;">
           <template #content>
             <ColorPicker
@@ -66,7 +66,7 @@
         </Popover>
       </div>
       <div class="row">
-        <div style="width: 40%;">终点颜色：</div>
+        <div style="width: 40%;">End color: </div>
         <Popover trigger="click" style="width: 60%;">
           <template #content>
             <ColorPicker
@@ -78,7 +78,7 @@
         </Popover>
       </div>
       <div class="row" v-if="gradient.type === 'linear'">
-        <div style="width: 40%;">渐变角度：</div>
+        <div style="width: 40%;">Gradient angle:</div>
         <Slider
           style="width: 60%;"
           :min="0"
@@ -132,7 +132,7 @@
               @update:modelValue="value => emitRichTextCommand('color', value)"
             />
           </template>
-          <TextColorButton first v-tooltip="'文字颜色'" :color="richTextAttrs.color">
+          <TextColorButton first v-tooltip="'text color'" :color="richTextAttrs.color">
             <IconText />
           </TextColorButton>
         </Popover>
@@ -143,21 +143,21 @@
               @update:modelValue="value => emitRichTextCommand('backcolor', value)"
             />
           </template>
-          <TextColorButton v-tooltip="'文字高亮'" :color="richTextAttrs.backcolor">
+          <TextColorButton v-tooltip="'text highlight'" :color="richTextAttrs.backcolor">
             <IconHighLight />
           </TextColorButton>
         </Popover>
         <Button 
           class="font-size-btn"
           style="width: 20%;"
-          v-tooltip="'增大字号'"
+          v-tooltip="'Increase font size'"
           @click="emitRichTextCommand('fontsize-add')"
         ><IconFontSize />+</Button>
         <Button
           last
           class="font-size-btn"
           style="width: 20%;"
-          v-tooltip="'减小字号'"
+          v-tooltip="'Reduce font size'"
           @click="emitRichTextCommand('fontsize-reduce')"
         ><IconFontSize />-</Button>
       </ButtonGroup>
@@ -166,25 +166,25 @@
         <CheckboxButton 
           style="flex: 1;"
           :checked="richTextAttrs.bold"
-          v-tooltip="'加粗'"
+          v-tooltip="'Bold'"
           @click="emitRichTextCommand('bold')"
         ><IconTextBold /></CheckboxButton>
         <CheckboxButton 
           style="flex: 1;"
           :checked="richTextAttrs.em"
-          v-tooltip="'斜体'"
+          v-tooltip="'italics'"
           @click="emitRichTextCommand('em')"
         ><IconTextItalic /></CheckboxButton>
         <CheckboxButton 
           style="flex: 1;"
           :checked="richTextAttrs.underline"
-          v-tooltip="'下划线'"
+          v-tooltip="'Underline'"
           @click="emitRichTextCommand('underline')"
         ><IconTextUnderline /></CheckboxButton>
         <CheckboxButton 
           style="flex: 1;"
           :checked="richTextAttrs.strikethrough"
-          v-tooltip="'删除线'"
+          v-tooltip="'strikethrough'"
           @click="emitRichTextCommand('strikethrough')"
         ><IconStrikethrough /></CheckboxButton>
       </ButtonGroup>
@@ -192,13 +192,13 @@
       <ButtonGroup class="row">
         <CheckboxButton
           style="flex: 1;"
-          v-tooltip="'清除格式'"
+          v-tooltip="'clear format'"
           @click="emitRichTextCommand('clear')"
         ><IconFormat /></CheckboxButton>
         <CheckboxButton
           style="flex: 1;"
           :checked="!!textFormatPainter"
-          v-tooltip="'格式刷（双击连续使用）'"
+          v-tooltip="'Format Painter (double-click to use continuously)'"
           @click="toggleTextFormatPainter()"
           @dblclick="toggleTextFormatPainter(true)"
         ><IconFormatBrush /></CheckboxButton>
@@ -212,10 +212,9 @@
         :value="richTextAttrs.align"
         @update:value="value => emitRichTextCommand('align', value)"
       >
-        <RadioButton value="left" v-tooltip="'左对齐'" style="flex: 1;"><IconAlignTextLeft /></RadioButton>
-        <RadioButton value="center" v-tooltip="'居中'" style="flex: 1;"><IconAlignTextCenter /></RadioButton>
-        <RadioButton value="right" v-tooltip="'右对齐'" style="flex: 1;"><IconAlignTextRight /></RadioButton>
-      </RadioGroup>
+        <RadioButton value="left" v-tooltip="'Left-aligned'" style="flex: 1;"><IconAlignTextLeft /></RadioButton>
+         <RadioButton value="center" v-tooltip="'center'" style="flex: 1;"><IconAlignTextCenter /></RadioButton>
+         <RadioButton value="right" v-tooltip="'right-aligned'" style="flex: 1;"><IconAlignTextRight /></RadioButton>  </RadioGroup>
 
       <RadioGroup 
         class="row" 
@@ -223,10 +222,9 @@
         :value="textAlign"
         @update:value="value => updateTextAlign(value as 'top' | 'middle' | 'bottom')"
       >
-        <RadioButton value="top" v-tooltip="'顶对齐'" style="flex: 1;"><IconAlignTextTopOne /></RadioButton>
-        <RadioButton value="middle" v-tooltip="'居中'" style="flex: 1;"><IconAlignTextMiddleOne /></RadioButton>
-        <RadioButton value="bottom" v-tooltip="'底对齐'" style="flex: 1;"><IconAlignTextBottomOne /></RadioButton>
-      </RadioGroup>
+     <RadioButton value="top" v-tooltip="'Top alignment'" style="flex: 1;"><IconAlignTextTopOne /></RadioButton>
+         <RadioButton value="middle" v-tooltip="'center'" style="flex: 1;"><IconAlignTextMiddleOne /></RadioButton>
+         <RadioButton value="bottom" v-tooltip="'bottom-aligned'" style="flex: 1;"><IconAlignTextBottomOne /></RadioButton>  </RadioGroup>
 
       <Divider  />
     </template>
@@ -240,12 +238,12 @@
 
     <div class="row">
       <CheckboxButton
-        v-tooltip="'双击连续使用'"
+        v-tooltip="'Double click to use continuously'"
         style="flex: 1;"
         :checked="!!shapeFormatPainter"
         @click="toggleShapeFormatPainter()"
         @dblclick="toggleShapeFormatPainter(true)"
-      ><IconFormatBrush /> 形状格式刷</CheckboxButton>
+      ><IconFormatBrush /> Shape Format Painter</CheckboxButton>
     </div>
   </div>
 </template>
@@ -366,7 +364,7 @@ const updateTextAlign = (align: 'top' | 'middle' | 'bottom') => {
   
   const defaultText: ShapeText = {
     content: '',
-    defaultFontName: '微软雅黑',
+    defaultFontName: 'Microsoft Yahei',
     defaultColor: '#000',
     align: 'middle',
   }

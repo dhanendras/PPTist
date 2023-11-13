@@ -17,12 +17,8 @@ module.exports = {
     ecmaVersion: 2020,
   },
   rules: {
-    'curly': ['error', 'multi-line'],
     'eqeqeq': ['error', 'always'],
     'semi': ['error', 'never'],
-    'indent': ['error', 2, { 
-      'SwitchCase': 1,
-    }],
     'quotes': ['error', 'single', {
       'avoidEscape': true,
       'allowTemplateLiterals': true,
@@ -36,7 +32,6 @@ module.exports = {
     'no-else-return': 'error',
     'no-multi-spaces': 'error',
     'require-await': 'error',
-    'brace-style': ['error', 'stroustrup'],
     'spaced-comment': ['error', 'always'],
     'arrow-spacing': 'error',
     'no-duplicate-imports': 'error',
@@ -47,15 +42,9 @@ module.exports = {
     'default-case': 'error',
     'consistent-this': ['error', '_this'],
     'max-depth': ['error', 8],
-    'max-lines': ['error', 800],
+    'max-lines': ['error', 900],
     'no-multi-str': 'error',
     'space-infix-ops': 'error',
-    'space-before-blocks': ['error', 'always'],
-    'space-before-function-paren': ['error', {
-      'named': 'never',
-      'anonymous': 'never',
-      'asyncArrow': 'always',
-    }],
     'keyword-spacing': ['error'],
     'prefer-const': 'error',
     'no-useless-return': 'error',

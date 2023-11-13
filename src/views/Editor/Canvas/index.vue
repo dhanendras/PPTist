@@ -1,22 +1,22 @@
 <template>
-  <div 
-    class="canvas" 
+  <div
+    class="canvas"
     ref="canvasRef"
-    @wheel="$event => handleMousewheelCanvas($event)"
-    @mousedown="$event => handleClickBlankArea($event)"
-    @dblclick="$event => handleDblClick($event)"
+    @wheel="($event) => handleMousewheelCanvas($event)"
+    @mousedown="($event) => handleClickBlankArea($event)"
+    @dblclick="($event) => handleDblClick($event)"
     v-contextmenu="contextmenus"
     v-click-outside="removeEditorAreaFocus"
   >
     <ElementCreateSelection
       v-if="creatingElement"
-      @created="data => insertElementFromCreateSelection(data)"
+      @created="(data) => insertElementFromCreateSelection(data)"
     />
     <ShapeCreateCanvas
       v-if="creatingCustomShape"
-      @created="data => insertCustomShape(data)"
+      @created="(data) => insertCustomShape(data)"
     />
-    <div 
+    <div
       class="viewport-wrapper"
       :style="{
         width: viewportStyles.width * canvasScale + 'px',
@@ -26,21 +26,21 @@
       }"
     >
       <div class="operates">
-        <AlignmentLine 
-          v-for="(line, index) in alignmentLines" 
-          :key="index" 
-          :type="line.type" 
-          :axis="line.axis" 
+        <AlignmentLine
+          v-for="(line, index) in alignmentLines"
+          :key="index"
+          :type="line.type"
+          :axis="line.axis"
           :length="line.length"
           :canvasScale="canvasScale"
         />
-        <MultiSelectOperate 
+        <MultiSelectOperate
           v-if="activeElementIdList.length > 1"
           :elementList="elementList"
           :scaleMultiElement="scaleMultiElement"
         />
         <Operate
-          v-for="element in elementList" 
+          v-for="element in elementList"
           :key="element.id"
           :elementInfo="element"
           :isSelected="activeElementIdList.includes(element.id)"
@@ -57,21 +57,21 @@
         <ViewportBackground />
       </div>
 
-      <div 
-        class="viewport" 
+      <div
+        class="viewport"
         ref="viewportRef"
         :style="{ transform: `scale(${canvasScale})` }"
       >
-        <MouseSelection 
+        <MouseSelection
           v-if="mouseSelectionVisible"
-          :top="mouseSelection.top" 
-          :left="mouseSelection.left" 
-          :width="mouseSelection.width" 
-          :height="mouseSelection.height" 
+          :top="mouseSelection.top"
+          :left="mouseSelection.left"
+          :width="mouseSelection.width"
+          :height="mouseSelection.height"
           :quadrant="mouseSelectionQuadrant"
-        />      
-        <EditableElement 
-          v-for="(element, index) in elementList" 
+        />
+        <EditableElement
+          v-for="(element, index) in elementList"
           :key="element.id"
           :elementInfo="element"
           :elementIndex="index + 1"
@@ -87,17 +87,22 @@
 
     <Ruler :viewportStyles="viewportStyles" v-if="showRuler" />
 
-    <Modal
-      v-model:visible="linkDialogVisible" 
-      :width="540"
-    >
+    <Modal v-model:visible="linkDialogVisible" :width="540">
       <LinkDialog @close="linkDialogVisible = false" />
     </Modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, provide, ref, watch, watchEffect } from 'vue'
+import {
+  nextTick,
+  onMounted,
+  onUnmounted,
+  provide,
+  ref,
+  watch,
+  watchEffect,
+} from 'vue'
 import { throttle } from 'lodash'
 import { storeToRefs } from 'pinia'
 import { useMainStore, useSlidesStore, useKeyboardStore } from '@/store'
@@ -160,7 +165,7 @@ const viewportRef = ref<HTMLElement>()
 const alignmentLines = ref<AlignmentLineProps[]>([])
 
 const linkDialogVisible = ref(false)
-const openLinkDialog = () => linkDialogVisible.value = true
+const openLinkDialog = () => (linkDialogVisible.value = true)
 
 watch(handleElementId, () => {
   mainStore.setActiveGroupElementId('')
@@ -168,7 +173,9 @@ watch(handleElementId, () => {
 
 const elementList = ref<PPTElement[]>([])
 const setLocalElementList = () => {
-  elementList.value = currentSlide.value ? JSON.parse(JSON.stringify(currentSlide.value.elements)) : []
+  elementList.value = currentSlide.value
+    ? JSON.parse(JSON.stringify(currentSlide.value.elements))
+    : []
 }
 watchEffect(setLocalElementList)
 
@@ -177,13 +184,26 @@ const { dragViewport, viewportStyles } = useViewportSize(canvasRef)
 
 useDropImageOrText(canvasRef)
 
-const { mouseSelection, mouseSelectionVisible, mouseSelectionQuadrant, updateMouseSelection } = useMouseSelection(elementList, viewportRef)
+const {
+  mouseSelection,
+  mouseSelectionVisible,
+  mouseSelectionQuadrant,
+  updateMouseSelection,
+} = useMouseSelection(elementList, viewportRef)
 
 const { dragElement } = useDragElement(elementList, alignmentLines, canvasScale)
 const { dragLineElement } = useDragLineElement(elementList)
 const { selectElement } = useSelectElement(elementList, dragElement)
-const { scaleElement, scaleMultiElement } = useScaleElement(elementList, alignmentLines, canvasScale)
-const { rotateElement } = useRotateElement(elementList, viewportRef, canvasScale)
+const { scaleElement, scaleMultiElement } = useScaleElement(
+  elementList,
+  alignmentLines,
+  canvasScale
+)
+const { rotateElement } = useRotateElement(
+  elementList,
+  viewportRef,
+  canvasScale
+)
 const { moveShapeKeypoint } = useMoveShapeKeypoint(elementList, canvasScale)
 
 const { selectAllElement } = useSelectAllElement()
@@ -215,8 +235,16 @@ const handleClickBlankArea = (e: MouseEvent) => {
 
 // 双击空白处插入文本
 const handleDblClick = (e: MouseEvent) => {
-  if (activeElementIdList.value.length || creatingElement.value || creatingCustomShape.value) return
-  if (!viewportRef.value) return
+  if (
+    activeElementIdList.value.length ||
+    creatingElement.value ||
+    creatingCustomShape.value
+  ) {
+    return
+  }
+  if (!viewportRef.value) {
+    return
+  }
 
   const viewportRect = viewportRef.value.getBoundingClientRect()
   const left = (e.pageX - viewportRect.x) / canvasScale.value
@@ -242,8 +270,14 @@ const removeEditorAreaFocus = () => {
 
 // 滚动鼠标
 const { scaleCanvas } = useScaleCanvas()
-const throttleScaleCanvas = throttle(scaleCanvas, 100, { leading: true, trailing: false })
-const throttleUpdateSlideIndex = throttle(updateSlideIndex, 300, { leading: true, trailing: false })
+const throttleScaleCanvas = throttle(scaleCanvas, 100, {
+  leading: true,
+  trailing: false,
+})
+const throttleUpdateSlideIndex = throttle(updateSlideIndex, 300, {
+  leading: true,
+  trailing: false,
+})
 
 const handleMousewheelCanvas = (e: WheelEvent) => {
   e.preventDefault()
@@ -266,16 +300,12 @@ const toggleRuler = () => {
 }
 
 // 在鼠标绘制的范围插入元素
-const { insertElementFromCreateSelection, formatCreateSelection } = useInsertFromCreateSelection(viewportRef)
+const { insertElementFromCreateSelection, formatCreateSelection } =
+  useInsertFromCreateSelection(viewportRef)
 
 // 插入自定义任意多边形
 const insertCustomShape = (data: CreateCustomShapeData) => {
-  const {
-    start,
-    end,
-    path,
-    viewBox,
-  } = data
+  const { start, end, path, viewBox } = data
   const position = formatCreateSelection({ start, end })
   position && createShapeElement(position, { path, viewBox })
 
@@ -285,31 +315,31 @@ const insertCustomShape = (data: CreateCustomShapeData) => {
 const contextmenus = (): ContextmenuItem[] => {
   return [
     {
-      text: '粘贴',
+      text: 'Paste',
       subText: 'Ctrl + V',
       handler: pasteElement,
     },
     {
-      text: '全选',
+      text: 'Select all',
       subText: 'Ctrl + A',
       handler: selectAllElement,
     },
     {
-      text: '标尺',
+      text: 'ruler',
       subText: showRuler.value ? '√' : '',
       handler: toggleRuler,
     },
     {
-      text: '网格线',
+      text: 'grid lines',
       handler: () => mainStore.setGridLineSize(gridLineSize.value ? 0 : 50),
       children: [
         {
-          text: '无',
+          text: 'None',
           subText: gridLineSize.value === 0 ? '√' : '',
           handler: () => mainStore.setGridLineSize(0),
         },
         {
-          text: '小',
+          text: 'small',
           subText: gridLineSize.value === 25 ? '√' : '',
           handler: () => mainStore.setGridLineSize(25),
         },
@@ -319,19 +349,19 @@ const contextmenus = (): ContextmenuItem[] => {
           handler: () => mainStore.setGridLineSize(50),
         },
         {
-          text: '大',
+          text: 'big',
           subText: gridLineSize.value === 100 ? '√' : '',
           handler: () => mainStore.setGridLineSize(100),
         },
       ],
     },
     {
-      text: '重置当前页',
+      text: 'Reset current page',
       handler: deleteAllElements,
     },
     { divider: true },
     {
-      text: '幻灯片放映',
+      text: 'Slide show',
       subText: 'F5',
       handler: enterScreeningFromStart,
     },

@@ -25,7 +25,7 @@ module.exports = {
     ],
   },
   pwa: {
-    name: 'PPTist',
+    name: 'Paperport',
     themeColor: '#d14424',
     iconPaths: {
       faviconSVG: null,
@@ -36,8 +36,8 @@ module.exports = {
       msTileImage: null,
     },
     manifestOptions: {
-      name: 'PPTist',
-      short_name: 'PPTist',
+      name: 'Paperport',
+      short_name: 'Paperport',
       theme_color: '#d14424',
       icons: [{
         src: 'icons/android-chrome-192x192.png',
@@ -67,7 +67,7 @@ module.exports = {
         urlPattern: /.*/,
         handler: 'NetworkFirst',
         options: {
-          cacheName: 'PPTist',
+          cacheName: 'Paperport',
           expiration: {
             maxAgeSeconds: 60 * 60 * 10,
           },

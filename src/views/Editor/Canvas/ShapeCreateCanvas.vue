@@ -128,7 +128,7 @@ const keydownListener = (e: KeyboardEvent) => {
   if (key === KEYS.ESC) close()
 }
 onMounted(() => {
-  message.success('点击开始绘制任意多边形，首尾闭合完成绘制，按 ESC 键或鼠标右键关闭')
+  message.success('Click to start drawing any polygon, close the beginning and end to complete the drawing, press the ESC key or the right mouse button to close')
   document.addEventListener('keydown', keydownListener)
 })
 onUnmounted(() => document.removeEventListener('keydown', keydownListener))

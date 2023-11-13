@@ -1,65 +1,150 @@
 <template>
   <div class="canvas-tool">
     <div class="left-handler">
-      <IconBack class="handler-item" :class="{ 'disable': !canUndo }" v-tooltip="'撤销'" @click="undo()" />
-      <IconNext class="handler-item" :class="{ 'disable': !canRedo }" v-tooltip="'重做'" @click="redo()" />
-      <Divider type="vertical" style="height: 20px;" />
-      <IconMoveOne class="handler-item" :class="{ 'active': showSelectPanel }" v-tooltip="'选择窗格'" @click="toggleSelectPanel()" />
-      <IconSearch class="handler-item" :class="{ 'active': showSearchPanel }" v-tooltip="'查找/替换'" @click="toggleSraechPanel()" />
+      <IconBack
+        class="handler-item"
+        :class="{ disable: !canUndo }"
+        v-tooltip="'Undo'"
+        @click="undo()"
+      />
+      <IconNext
+        class="handler-item"
+        :class="{ disable: !canRedo }"
+        v-tooltip="'Redo'"
+        @click="redo()"
+      />
+      <Divider type="vertical" style="height: 20px" />
+      <IconMoveOne
+        class="handler-item"
+        :class="{ active: showSelectPanel }"
+        v-tooltip="'SelectPanel'"
+        @click="toggleSelectPanel()"
+      />
+      <IconSearch
+        class="handler-item"
+        :class="{ active: showSearchPanel }"
+        v-tooltip="'Find/Replace'"
+        @click="toggleSraechPanel()"
+      />
     </div>
 
     <div class="add-element-handler">
-      <div class="handler-item group-btn" v-tooltip="'插入文字'">
-        <IconFontSize class="icon" :class="{ 'active': creatingElement?.type === 'text' }" @click="drawText()" />
-        
-        <Popover trigger="click" v-model:value="textTypeSelectVisible" style="height: 100%;">
+      <div class="handler-item group-btn" v-tooltip="'Insert Text'">
+        <IconFontSize
+          class="icon"
+          :class="{ active: creatingElement?.type === 'text' }"
+          @click="drawText()"
+        />
+
+        <Popover
+          trigger="click"
+          v-model:value="textTypeSelectVisible"
+          style="height: 100%"
+        >
           <template #content>
-            <PopoverMenuItem center @click="() => { drawText(); textTypeSelectVisible = false }"><IconTextRotationNone /> 横向文本框</PopoverMenuItem>
-            <PopoverMenuItem center @click="() => { drawText(true); textTypeSelectVisible = false }"><IconTextRotationDown /> 竖向文本框</PopoverMenuItem>
+            <PopoverMenuItem
+              center
+              @click="
+                () => {
+                  drawText()
+                  textTypeSelectVisible = false
+                }
+              "
+              ><IconTextRotationNone /> Horizontal text box</PopoverMenuItem
+            >
+            <PopoverMenuItem
+              center
+              @click="
+                () => {
+                  drawText(true)
+                  textTypeSelectVisible = false
+                }
+              "
+              ><IconTextRotationDown /> vertical text box</PopoverMenuItem
+            >
           </template>
           <IconDown class="arrow" />
         </Popover>
       </div>
-      <FileInput @change="files => insertImageElement(files)">
-        <IconPicture class="handler-item" v-tooltip="'插入图片'" />
+      <FileInput @change="(files) => insertImageElement(files)">
+        <IconPicture class="handler-item" v-tooltip="'Insert picture'" />
       </FileInput>
       <Popover trigger="click" v-model:value="shapePoolVisible">
         <template #content>
-          <ShapePool @select="shape => drawShape(shape)" />
+          <ShapePool @select="(shape) => drawShape(shape)" />
         </template>
-        <IconGraphicDesign class="handler-item" :class="{ 'active': creatingCustomShape || creatingElement?.type === 'shape' }" v-tooltip="'插入形状'" />
+        <IconGraphicDesign
+          class="handler-item"
+          :class="{
+            active: creatingCustomShape || creatingElement?.type === 'shape',
+          }"
+          v-tooltip="'Insert shape'"
+        />
       </Popover>
       <Popover trigger="click" v-model:value="linePoolVisible">
         <template #content>
-          <LinePool @select="line => drawLine(line)" />
+          <LinePool @select="(line) => drawLine(line)" />
         </template>
-        <IconConnection class="handler-item" :class="{ 'active': creatingElement?.type === 'line' }" v-tooltip="'插入线条'" />
+        <IconConnection
+          class="handler-item"
+          :class="{ active: creatingElement?.type === 'line' }"
+          v-tooltip="'Insert line'"
+        />
       </Popover>
       <Popover trigger="click" v-model:value="chartPoolVisible">
         <template #content>
-          <ChartPool @select="chart => { createChartElement(chart); chartPoolVisible = false }" />
+          <ChartPool
+            @select="
+              (chart) => {
+                createChartElement(chart)
+                chartPoolVisible = false
+              }
+            "
+          />
         </template>
-        <IconChartProportion class="handler-item" v-tooltip="'插入图表'" />
+        <IconChartProportion class="handler-item" v-tooltip="'Insert chart'" />
       </Popover>
       <Popover trigger="click" v-model:value="tableGeneratorVisible">
         <template #content>
           <TableGenerator
             @close="tableGeneratorVisible = false"
-            @insert="({ row, col }) => { createTableElement(row, col); tableGeneratorVisible = false }"
+            @insert="
+              ({ row, col }) => {
+                createTableElement(row, col)
+                tableGeneratorVisible = false
+              }
+            "
           />
         </template>
-        <IconInsertTable class="handler-item" v-tooltip="'插入表格'" />
+        <IconInsertTable class="handler-item" v-tooltip="'Insert table'" />
       </Popover>
-      <IconFormula class="handler-item" v-tooltip="'插入公式'" @click="latexEditorVisible = true" />
+      <IconFormula
+        class="handler-item"
+        v-tooltip="'Insert formula'"
+        @click="latexEditorVisible = true"
+      />
       <Popover trigger="click" v-model:value="mediaInputVisible">
         <template #content>
-          <MediaInput 
+          <MediaInput
             @close="mediaInputVisible = false"
-            @insertVideo="src => { createVideoElement(src); mediaInputVisible = false }"
-            @insertAudio="src => { createAudioElement(src); mediaInputVisible = false }"
+            @insertVideo="
+              (src) => {
+                createVideoElement(src)
+                mediaInputVisible = false
+              }
+            "
+            @insertAudio="
+              (src) => {
+                createAudioElement(src)
+                mediaInputVisible = false
+              }
+            "
           />
         </template>
-        <IconVideoTwo class="handler-item" v-tooltip="'插入音视频'" />
+        <IconVideoTwo
+          class="handler-item"
+          v-tooltip="'Insert audio and video'"
+        />
       </Popover>
     </div>
 
@@ -69,24 +154,31 @@
         <template #content>
           <PopoverMenuItem
             center
-            v-for="item in canvasScalePresetList" 
-            :key="item" 
+            v-for="item in canvasScalePresetList"
+            :key="item"
             @click="applyCanvasPresetScale(item)"
-          >{{item}}%</PopoverMenuItem>
+            >{{ item }}%</PopoverMenuItem
+          >
         </template>
-        <span class="text">{{canvasScalePercentage}}</span>
+        <span class="text">{{ canvasScalePercentage }}</span>
       </Popover>
       <IconPlus class="handler-item viewport-size" @click="scaleCanvas('+')" />
-      <IconFullScreen class="handler-item viewport-size-adaptation" v-tooltip="'适应屏幕'" @click="resetCanvas()" />
+      <IconFullScreen
+        class="handler-item viewport-size-adaptation"
+        v-tooltip="'Adapt to screen'"
+        @click="resetCanvas()"
+      />
     </div>
 
-    <Modal
-      v-model:visible="latexEditorVisible" 
-      :width="880"
-    >
-      <LaTeXEditor 
+    <Modal v-model:visible="latexEditorVisible" :width="880">
+      <LaTeXEditor
         @close="latexEditorVisible = false"
-        @update="data => { createLatexElement(data); latexEditorVisible = false }"
+        @update="
+          (data) => {
+            createLatexElement(data)
+            latexEditorVisible = false
+          }
+        "
       />
     </Modal>
   </div>
@@ -116,7 +208,12 @@ import Popover from '@/components/Popover.vue'
 import PopoverMenuItem from '@/components/PopoverMenuItem.vue'
 
 const mainStore = useMainStore()
-const { creatingElement, creatingCustomShape, showSelectPanel, showSearchPanel } = storeToRefs(mainStore)
+const {
+  creatingElement,
+  creatingCustomShape,
+  showSelectPanel,
+  showSearchPanel,
+} = storeToRefs(mainStore)
 const { canUndo, canRedo } = storeToRefs(useSnapshotStore())
 
 const { redo, undo } = useHistorySnapshot()
@@ -148,7 +245,7 @@ const {
 const insertImageElement = (files: FileList) => {
   const imageFile = files[0]
   if (!imageFile) return
-  getImageDataURL(imageFile).then(dataURL => createImageElement(dataURL))
+  getImageDataURL(imageFile).then((dataURL) => createImageElement(dataURL))
 }
 
 const shapePoolVisible = ref(false)
@@ -169,10 +266,9 @@ const drawText = (vertical = false) => {
 
 // 绘制形状范围（或绘制自定义任意多边形）
 const drawShape = (shape: ShapePoolItem) => {
-  if (shape.title === '任意多边形') {
+  if (shape.title === 'arbitrary polygon') {
     mainStore.setCreatingCustomShapeState(true)
-  }
-  else {
+  } else {
     mainStore.setCreatingElement({
       type: 'shape',
       data: shape,
@@ -242,7 +338,8 @@ const toggleSraechPanel = () => {
         background-color: #f3f3f3;
       }
 
-      .icon, .arrow {
+      .icon,
+      .arrow {
         height: 100%;
         display: flex;
         justify-content: center;
@@ -282,10 +379,11 @@ const toggleSraechPanel = () => {
   cursor: pointer;
 
   &.disable {
-    opacity: .5;
+    opacity: 0.5;
   }
 }
-.left-handler, .right-handler {
+.left-handler,
+.right-handler {
   .handler-item {
     padding: 0 8px;
 
@@ -317,7 +415,8 @@ const toggleSraechPanel = () => {
   }
 }
 @media screen and (width <= 1000px) {
-  .left-handler, .right-handler {
+  .left-handler,
+  .right-handler {
     display: none;
   }
 }

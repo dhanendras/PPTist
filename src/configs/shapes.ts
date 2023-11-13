@@ -226,7 +226,7 @@ export const SHAPE_PATH_FORMULAS = {
 
 export const SHAPE_LIST: ShapeListItem[] = [
   {
-    type: '矩形',
+    type: 'rectangle',
     children: [
       {
         viewBox: [200, 200],
@@ -284,13 +284,13 @@ export const SHAPE_LIST: ShapeListItem[] = [
       {
         viewBox: [200, 200],
         path: 'M 0 80 L 60 0 L 100 40 L 180 20 L 200 120 L 160 200 L 0 200 L 60 140 Z',
-        title: '任意多边形',
+        title: 'arbitrary polygon',
       },
     ]
   },
 
   {
-    type: '常用形状',
+    type: 'Common shapes',
     children: [
       {
         viewBox: [200, 200],
@@ -522,7 +522,7 @@ export const SHAPE_LIST: ShapeListItem[] = [
   },
   
   {
-    type: '箭头',
+    type: 'arrow',
     children: [
       {
         viewBox: [200, 200],
@@ -635,7 +635,7 @@ export const SHAPE_LIST: ShapeListItem[] = [
   },
 
   {
-    type: '其他形状',
+    type: 'other shapes',
     children: [
       {
         viewBox: [1024, 1024],
@@ -821,7 +821,7 @@ export const SHAPE_LIST: ShapeListItem[] = [
   },
 
   {
-    type: '线性',
+    type: 'Linear',
     children: [
       {
         viewBox: [1024, 1024],

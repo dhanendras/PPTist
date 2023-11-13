@@ -1,14 +1,17 @@
 <template>
   <div class="pptist-editor">
-    <EditorHeader class="layout-header" />
+    <!-- <EditorHeader class="layout-header" /> -->
     <div class="layout-content">
       <Thumbnails class="layout-content-left" />
       <div class="layout-content-center">
         <CanvasTool class="center-top" />
-        <Canvas class="center-body" :style="{ height: `calc(100% - ${remarkHeight + 40}px)` }" />
+        <Canvas
+          class="center-body"
+          :style="{ height: `calc(100% - ${remarkHeight + 40}px)` }"
+        />
         <Remark
-          class="center-bottom" 
-          v-model:height="remarkHeight" 
+          class="center-bottom"
+          v-model:height="remarkHeight"
           :style="{ height: `${remarkHeight}px` }"
         />
       </div>
@@ -20,7 +23,7 @@
   <SearchPanel v-if="showSearchPanel" />
 
   <Modal
-    :visible="!!dialogForExport" 
+    :visible="!!dialogForExport"
     :width="680"
     @closed="closeExportDialog()"
   >
@@ -35,7 +38,7 @@ import { useMainStore } from '@/store'
 import useGlobalHotkey from '@/hooks/useGlobalHotkey'
 import usePasteEvent from '@/hooks/usePasteEvent'
 
-import EditorHeader from './EditorHeader/index.vue'
+// import EditorHeader from './EditorHeader/index.vue'
 import Canvas from './Canvas/index.vue'
 import CanvasTool from './CanvasTool/index.vue'
 import Thumbnails from './Thumbnails/index.vue'
@@ -47,7 +50,8 @@ import SearchPanel from './SearchPanel.vue'
 import Modal from '@/components/Modal.vue'
 
 const mainStore = useMainStore()
-const { dialogForExport, showSelectPanel, showSearchPanel } = storeToRefs(mainStore)
+const { dialogForExport, showSelectPanel, showSearchPanel } =
+  storeToRefs(mainStore)
 const closeExportDialog = () => mainStore.setDialogForExport('')
 
 const remarkHeight = ref(40)

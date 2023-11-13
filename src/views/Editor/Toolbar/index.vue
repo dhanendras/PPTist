@@ -1,9 +1,9 @@
 <template>
   <div class="toolbar">
-    <Tabs 
-      :tabs="currentTabs" 
-      :value="toolbarState" 
-      card 
+    <Tabs
+      :tabs="currentTabs"
+      :value="toolbarState"
+      card
       @update:value="key => setToolbarState(key as ToolbarStates)"
     />
     <div class="content">
@@ -33,31 +33,32 @@ interface ElementTabs {
 }
 
 const mainStore = useMainStore()
-const { activeElementIdList, handleElement, toolbarState } = storeToRefs(mainStore)
+const { activeElementIdList, handleElement, toolbarState } =
+  storeToRefs(mainStore)
 
 const elementTabs = computed<ElementTabs[]>(() => {
   if (handleElement.value?.type === 'text') {
     return [
-      { label: '样式', key: ToolbarStates.EL_STYLE },
-      { label: '符号', key: ToolbarStates.SYMBOL },
-      { label: '位置', key: ToolbarStates.EL_POSITION },
-      { label: '动画', key: ToolbarStates.EL_ANIMATION },
+      { label: 'Style', key: ToolbarStates.EL_STYLE },
+      { label: 'symbol', key: ToolbarStates.SYMBOL },
+      { label: 'Position', key: ToolbarStates.EL_POSITION },
+      { label: 'animation', key: ToolbarStates.EL_ANIMATION },
     ]
   }
   return [
-    { label: '样式', key: ToolbarStates.EL_STYLE },
-    { label: '位置', key: ToolbarStates.EL_POSITION },
-    { label: '动画', key: ToolbarStates.EL_ANIMATION },
+    { label: 'Style', key: ToolbarStates.EL_STYLE },
+    { label: 'Position', key: ToolbarStates.EL_POSITION },
+    { label: 'animation', key: ToolbarStates.EL_ANIMATION },
   ]
 })
 const slideTabs = [
-  { label: '设计', key: ToolbarStates.SLIDE_DESIGN },
-  { label: '切换', key: ToolbarStates.SLIDE_ANIMATION },
-  { label: '动画', key: ToolbarStates.EL_ANIMATION },
+  { label: 'Design', key: ToolbarStates.SLIDE_DESIGN },
+  { label: 'Switch', key: ToolbarStates.SLIDE_ANIMATION },
+  { label: 'animation', key: ToolbarStates.EL_ANIMATION },
 ]
 const multiSelectTabs = [
-  { label: '样式', key: ToolbarStates.EL_STYLE },
-  { label: '位置', key: ToolbarStates.MULTI_POSITION },
+  { label: 'Style', key: ToolbarStates.EL_STYLE },
+  { label: 'Position', key: ToolbarStates.MULTI_POSITION },
 ]
 
 const setToolbarState = (value: ToolbarStates) => {
@@ -71,7 +72,9 @@ const currentTabs = computed(() => {
 })
 
 watch(currentTabs, () => {
-  const currentTabsValue: ToolbarStates[] = currentTabs.value.map(tab => tab.key)
+  const currentTabsValue: ToolbarStates[] = currentTabs.value.map(
+    (tab) => tab.key
+  )
   if (!currentTabsValue.includes(toolbarState.value)) {
     mainStore.setToolbarState(currentTabsValue[0])
   }

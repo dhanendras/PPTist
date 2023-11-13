@@ -1,20 +1,17 @@
 <template>
-  <div 
-    class="editable-table"
-    :style="{ width: totalWidth + 'px' }"
-  >
+  <div class="editable-table" :style="{ width: totalWidth + 'px' }">
     <div class="handler" v-if="editable">
-      <div 
-        class="drag-line" 
-        v-for="(pos, index) in dragLinePosition" 
+      <div
+        class="drag-line"
+        v-for="(pos, index) in dragLinePosition"
         :key="index"
         :style="{ left: pos + 'px' }"
-        @mousedown="$event => handleMousedownColHandler($event, index)"
+        @mousedown="($event) => handleMousedownColHandler($event, index)"
       ></div>
     </div>
-    <table 
+    <table
       :class="{
-        'theme': theme,
+        theme: theme,
         'row-header': theme?.rowHeader,
         'row-footer': theme?.rowFooter,
         'col-header': theme?.colHeader,
@@ -23,15 +20,26 @@
       :style="`--themeColor: ${theme?.color}; --subThemeColor1: ${subThemeColor[0]}; --subThemeColor2: ${subThemeColor[1]}`"
     >
       <colgroup>
-        <col span="1" v-for="(width, index) in colSizeList" :key="index" :width="width">
+        <col
+          span="1"
+          v-for="(width, index) in colSizeList"
+          :key="index"
+          :width="width"
+        />
       </colgroup>
       <tbody>
-        <tr v-for="(rowCells, rowIndex) in tableCells" :key="rowIndex" :style="{ height: cellMinHeight + 'px' }">
-          <td 
+        <tr
+          v-for="(rowCells, rowIndex) in tableCells"
+          :key="rowIndex"
+          :style="{ height: cellMinHeight + 'px' }"
+        >
+          <td
             class="cell"
             :class="{
-              'selected': selectedCells.includes(`${rowIndex}_${colIndex}`) && selectedCells.length > 1,
-              'active': activedCell === `${rowIndex}_${colIndex}`,
+              selected:
+                selectedCells.includes(`${rowIndex}_${colIndex}`) &&
+                selectedCells.length > 1,
+              active: activedCell === `${rowIndex}_${colIndex}`,
             }"
             :style="{
               borderStyle: outline.style,
@@ -45,20 +53,29 @@
             :colspan="cell.colspan"
             :data-cell-index="`${rowIndex}_${colIndex}`"
             v-show="!hideCells.includes(`${rowIndex}_${colIndex}`)"
-            @mousedown="$event => handleCellMousedown($event, rowIndex, colIndex)"
+            @mousedown="
+              ($event) => handleCellMousedown($event, rowIndex, colIndex)
+            "
             @mouseenter="handleCellMouseenter(rowIndex, colIndex)"
             v-contextmenu="(el: HTMLElement) => contextmenus(el)"
           >
-            <CustomTextarea 
+            <CustomTextarea
               v-if="activedCell === `${rowIndex}_${colIndex}`"
-              class="cell-text" 
-              :class="{ 'active': activedCell === `${rowIndex}_${colIndex}` }"
-              :style="{ minHeight: (cellMinHeight - 4) + 'px' }"
+              class="cell-text"
+              :class="{ active: activedCell === `${rowIndex}_${colIndex}` }"
+              :style="{ minHeight: cellMinHeight - 4 + 'px' }"
               :value="cell.text"
-              @updateValue="value => handleInput(value, rowIndex, colIndex)"
-              @insertExcelData="value => insertExcelData(value, rowIndex, colIndex)"
+              @updateValue="(value) => handleInput(value, rowIndex, colIndex)"
+              @insertExcelData="
+                (value) => insertExcelData(value, rowIndex, colIndex)
+              "
             />
-            <div v-else class="cell-text" :style="{ minHeight: (cellMinHeight - 4) + 'px' }" v-html="formatText(cell.text)" />
+            <div
+              v-else
+              class="cell-text"
+              :style="{ minHeight: cellMinHeight - 4 + 'px' }"
+              v-html="formatText(cell.text)"
+            />
           </td>
         </tr>
       </tbody>
@@ -81,17 +98,20 @@ import useSubThemeColor from './useSubThemeColor'
 
 import CustomTextarea from './CustomTextarea.vue'
 
-const props = withDefaults(defineProps<{
-  data: TableCell[][]
-  width: number
-  cellMinHeight: number
-  colWidths: number[]
-  outline: PPTElementOutline
-  theme?: TableTheme
-  editable?: boolean
-}>(), {
-  editable: true,
-})
+const props = withDefaults(
+  defineProps<{
+    data: TableCell[][]
+    width: number
+    cellMinHeight: number
+    colWidths: number[]
+    outline: PPTElementOutline
+    theme?: TableTheme
+    editable?: boolean
+  }>(),
+  {
+    editable: true,
+  }
+)
 
 const emit = defineEmits<{
   (event: 'change', payload: TableCell[][]): void
@@ -100,7 +120,7 @@ const emit = defineEmits<{
 }>()
 
 const { canvasScale } = storeToRefs(useMainStore())
-    
+
 const isStartSelect = ref(false)
 const startCell = ref<number[]>([])
 const endCell = ref<number[]>([])
@@ -121,12 +141,13 @@ const { subThemeColor } = useSubThemeColor(theme)
 // 计算表格每一列的列宽和总宽度
 const colSizeList = ref<number[]>([])
 const totalWidth = computed(() => colSizeList.value.reduce((a, b) => a + b))
-watch([
-  () => props.colWidths,
-  () => props.width,
-], () => {
-  colSizeList.value = props.colWidths.map(item => item * props.width)
-}, { immediate: true })
+watch(
+  [() => props.colWidths, () => props.width],
+  () => {
+    colSizeList.value = props.colWidths.map((item) => item * props.width)
+  },
+  { immediate: true }
+)
 
 // 清除全部单元格的选中状态
 // 表格处于不可编辑状态时也需要清除
@@ -135,15 +156,18 @@ const removeSelectedCells = () => {
   endCell.value = []
 }
 
-watch(() => props.editable, () => {
-  if (!props.editable) removeSelectedCells()
-})
+watch(
+  () => props.editable,
+  () => {
+    if (!props.editable) removeSelectedCells()
+  }
+)
 
 // 用于拖拽列宽的操作节点位置
 const dragLinePosition = computed(() => {
   const dragLinePosition: number[] = []
   for (let i = 1; i < colSizeList.value.length + 1; i++) {
-    const pos = colSizeList.value.slice(0, i).reduce((a, b) => (a + b))
+    const pos = colSizeList.value.slice(0, i).reduce((a, b) => a + b)
     dragLinePosition.push(pos)
   }
   return dragLinePosition
@@ -173,7 +197,9 @@ const selectedCells = computed(() => {
   for (let i = 0; i < tableCells.value.length; i++) {
     const rowCells = tableCells.value[i]
     for (let j = 0; j < rowCells.length; j++) {
-      if (i >= minX && i <= maxX && j >= minY && j <= maxY) selectedCells.push(`${i}_${j}`)
+      if (i >= minX && i <= maxX && j >= minY && j <= maxY) {
+        selectedCells.push(`${i}_${j}`)
+      }
     }
   }
   return selectedCells
@@ -191,9 +217,13 @@ const activedCell = computed(() => {
 })
 
 // 设置选中单元格状态（鼠标点击或拖选）
-const handleMouseup = () => isStartSelect.value = false
+const handleMouseup = () => (isStartSelect.value = false)
 
-const handleCellMousedown = (e: MouseEvent, rowIndex: number, colIndex: number) => {
+const handleCellMousedown = (
+  e: MouseEvent,
+  rowIndex: number,
+  colIndex: number
+) => {
   if (e.button === 0) {
     endCell.value = []
     isStartSelect.value = true
@@ -214,7 +244,8 @@ onUnmounted(() => {
 })
 
 // 判断某位置是否为无效单元格（被合并掉的位置）
-const isHideCell = (rowIndex: number, colIndex: number) => hideCells.value.includes(`${rowIndex}_${colIndex}`)
+const isHideCell = (rowIndex: number, colIndex: number) =>
+  hideCells.value.includes(`${rowIndex}_${colIndex}`)
 
 // 选中指定的列
 const selectCol = (index: number) => {
@@ -240,14 +271,16 @@ const selectAll = () => {
 
 // 删除一行
 const deleteRow = (rowIndex: number) => {
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
 
   const targetCells = tableCells.value[rowIndex]
   const hideCellsPos = []
   for (let i = 0; i < targetCells.length; i++) {
     if (isHideCell(rowIndex, i)) hideCellsPos.push(i)
   }
-  
+
   for (const pos of hideCellsPos) {
     for (let i = rowIndex; i >= 0; i--) {
       if (!isHideCell(i, pos)) {
@@ -263,7 +296,9 @@ const deleteRow = (rowIndex: number) => {
 
 // 删除一列
 const deleteCol = (colIndex: number) => {
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
 
   const hideCellsPos = []
   for (let i = 0; i < tableCells.value.length; i++) {
@@ -279,7 +314,7 @@ const deleteCol = (colIndex: number) => {
     }
   }
 
-  tableCells.value = _tableCells.map(item => {
+  tableCells.value = _tableCells.map((item) => {
     item.splice(colIndex, 1)
     return item
   })
@@ -289,7 +324,9 @@ const deleteCol = (colIndex: number) => {
 
 // 插入一行
 const insertRow = (rowIndex: number) => {
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
 
   const rowCells: TableCell[] = []
   for (let i = 0; i < _tableCells[0].length; i++) {
@@ -307,7 +344,7 @@ const insertRow = (rowIndex: number) => {
 
 // 插入一列
 const insertCol = (colIndex: number) => {
-  tableCells.value = tableCells.value.map(item => {
+  tableCells.value = tableCells.value.map((item) => {
     const cell = {
       colspan: 1,
       rowspan: 1,
@@ -325,7 +362,7 @@ const insertCol = (colIndex: number) => {
 const fillTable = (rowCount: number, colCount: number) => {
   let _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
   const defaultCell = { colspan: 1, rowspan: 1, text: '' }
-  
+
   if (rowCount) {
     const newRows = []
     for (let i = 0; i < rowCount; i++) {
@@ -341,7 +378,7 @@ const fillTable = (rowCount: number, colCount: number) => {
     _tableCells = [..._tableCells, ...newRows]
   }
   if (colCount) {
-    _tableCells = _tableCells.map(item => {
+    _tableCells = _tableCells.map((item) => {
       const cells: TableCell[] = []
       for (let i = 0; i < colCount; i++) {
         const cell = {
@@ -369,8 +406,10 @@ const mergeCells = () => {
   const maxX = Math.max(startX, endX)
   const maxY = Math.max(startY, endY)
 
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
-  
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
+
   _tableCells[minX][minY].rowspan = maxX - minX + 1
   _tableCells[minX][minY].colspan = maxY - minY + 1
 
@@ -380,7 +419,9 @@ const mergeCells = () => {
 
 // 拆分单元格
 const splitCells = (rowIndex: number, colIndex: number) => {
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
   _tableCells[rowIndex][colIndex].rowspan = 1
   _tableCells[rowIndex][colIndex].colspan = 1
 
@@ -398,11 +439,14 @@ const handleMousedownColHandler = (e: MouseEvent, colIndex: number) => {
 
   const minWidth = 50
 
-  document.onmousemove = e => {
+  document.onmousemove = (e) => {
     if (!isMouseDown) return
-    
+
     const moveX = (e.pageX - startPageX) / canvasScale.value
-    const width = originWidth + moveX < minWidth ? minWidth : Math.round(originWidth + moveX)
+    const width =
+      originWidth + moveX < minWidth
+        ? minWidth
+        : Math.round(originWidth + moveX)
 
     colSizeList.value[colIndex] = width
   }
@@ -417,7 +461,9 @@ const handleMousedownColHandler = (e: MouseEvent, colIndex: number) => {
 
 // 清空选中单元格内的文字
 const clearSelectedCellText = () => {
-  const _tableCells: TableCell[][] = JSON.parse(JSON.stringify(tableCells.value))
+  const _tableCells: TableCell[][] = JSON.parse(
+    JSON.stringify(tableCells.value)
+  )
 
   for (let i = 0; i < _tableCells.length; i++) {
     for (let j = 0; j < _tableCells[i].length; j++) {
@@ -450,12 +496,15 @@ const tabActiveCell = () => {
   if (!nextCell) {
     insertRow(nextRow + 1)
     startCell.value = [nextRow + 1, 0]
+  } else {
+    startCell.value = nextCell
   }
-  else startCell.value = nextCell
 
   // 移动焦点后自动聚焦文本
   nextTick(() => {
-    const textRef = document.querySelector('.cell-text.active') as HTMLInputElement
+    const textRef = document.querySelector(
+      '.cell-text.active'
+    ) as HTMLInputElement
     if (textRef) textRef.focus()
   })
 }
@@ -490,8 +539,7 @@ const keydownListener = (e: KeyboardEvent) => {
       const colIndex = +selectedCells.value[0].split('_')[1]
       insertCol(colIndex + 1)
     }
-  }
-  else if (key === KEYS.DELETE) {
+  } else if (key === KEYS.DELETE) {
     clearSelectedCellText()
   }
 }
@@ -504,20 +552,30 @@ onUnmounted(() => {
 })
 
 // 单元格文字输入时更新表格数据
-const handleInput = debounce(function(value, rowIndex, colIndex) {
-  tableCells.value[rowIndex][colIndex].text = value
-  emit('change', tableCells.value)
-}, 300, { trailing: true })
+const handleInput = debounce(
+  function (value, rowIndex, colIndex) {
+    tableCells.value[rowIndex][colIndex].text = value
+    emit('change', tableCells.value)
+  },
+  300,
+  { trailing: true }
+)
 
 // 插入来自Excel的数据，表格的行/列数不够时自动补足
-const insertExcelData = (data: string[][], rowIndex: number, colIndex: number) => {
+const insertExcelData = (
+  data: string[][],
+  rowIndex: number,
+  colIndex: number
+) => {
   const maxRow = data.length
   const maxCol = data[0].length
 
   let fillRowCount = 0
   let fillColCount = 0
-  if (rowIndex + maxRow > tableCells.value.length) fillRowCount = rowIndex + maxRow - tableCells.value.length
-  if (colIndex + maxCol > tableCells.value[0].length) fillColCount = colIndex + maxCol - tableCells.value[0].length
+  if (rowIndex + maxRow > tableCells.value.length)
+    fillRowCount = rowIndex + maxRow - tableCells.value.length
+  if (colIndex + maxCol > tableCells.value[0].length)
+    fillColCount = colIndex + maxCol - tableCells.value[0].length
   if (fillRowCount || fillColCount) fillTable(fillRowCount, fillColCount)
 
   nextTick(() => {
@@ -565,7 +623,8 @@ const checkCanMergeOrSplit = (rowIndex: number, colIndex: number) => {
   const targetCell = tableCells.value[rowIndex][colIndex]
 
   const canMerge = isMultiSelected
-  const canSplit = !isMultiSelected && (targetCell.rowspan > 1 || targetCell.colspan > 1)
+  const canSplit =
+    !isMultiSelected && (targetCell.rowspan > 1 || targetCell.colspan > 1)
 
   return { canMerge, canSplit }
 }
@@ -585,51 +644,51 @@ const contextmenus = (el: HTMLElement): ContextmenuItem[] => {
 
   return [
     {
-      text: '插入列',
+      text: 'Insert column',
       children: [
-        { text: '到左侧', handler: () => insertCol(colIndex) },
-        { text: '到右侧', handler: () => insertCol(colIndex + 1) },
+        { text: 'To the left', handler: () => insertCol(colIndex) },
+        { text: 'To the right', handler: () => insertCol(colIndex + 1) },
       ],
     },
     {
-      text: '插入行',
+      text: 'Insert row',
       children: [
-        { text: '到上方', handler: () => insertRow(rowIndex) },
-        { text: '到下方', handler: () => insertRow(rowIndex + 1) },
+        { text: 'To the top', handler: () => insertRow(rowIndex) },
+        { text: 'Go to the bottom', handler: () => insertRow(rowIndex + 1) },
       ],
     },
     {
-      text: '删除列',
+      text: 'Delete column',
       disable: !canDeleteCol,
       handler: () => deleteCol(colIndex),
     },
     {
-      text: '删除行',
+      text: 'Delete row',
       disable: !canDeleteRow,
       handler: () => deleteRow(rowIndex),
     },
     { divider: true },
     {
-      text: '合并单元格',
+      text: 'Merge cells',
       disable: !canMerge,
       handler: mergeCells,
     },
     {
-      text: '取消合并单元格',
+      text: 'Unmerge cells',
       disable: !canSplit,
       handler: () => splitCells(rowIndex, colIndex),
     },
     { divider: true },
     {
-      text: '选中当前列',
+      text: 'Select current column',
       handler: () => selectCol(colIndex),
     },
     {
-      text: '选中当前行',
+      text: 'Select current line',
       handler: () => selectRow(rowIndex),
     },
     {
-      text: '选中全部单元格',
+      text: 'Select all cells',
       handler: selectAll,
     },
   ]
@@ -703,7 +762,7 @@ table {
       position: absolute;
       top: 0;
       left: 0;
-      background-color: rgba($color: #666, $alpha: .4);
+      background-color: rgba($color: #666, $alpha: 0.4);
     }
   }
 

@@ -6,8 +6,17 @@ import pptxgen from 'pptxgenjs'
 import tinycolor from 'tinycolor2'
 import { toPng, toJpeg } from 'html-to-image'
 import { useSlidesStore } from '@/store'
-import type { PPTElementOutline, PPTElementShadow, PPTElementLink, Slide } from '@/types/slides'
-import { getElementRange, getLineElementPath, getTableSubThemeColor } from '@/utils/element'
+import type {
+  PPTElementOutline,
+  PPTElementShadow,
+  PPTElementLink,
+  Slide,
+} from '@/types/slides'
+import {
+  getElementRange,
+  getLineElementPath,
+  getTableSubThemeColor,
+} from '@/utils/element'
 import { type AST, toAST } from '@/utils/htmlParser'
 import { type SvgPoints, toPoints } from '@/utils/svgPathParser'
 import { encrypt } from '@/utils/crypto'
@@ -30,12 +39,17 @@ export default () => {
   const exporting = ref(false)
 
   // 导出图片
-  const exportImage = (domRef: HTMLElement, format: string, quality: number, ignoreWebfont = true) => {
+  const exportImage = (
+    domRef: HTMLElement,
+    format: string,
+    quality: number,
+    ignoreWebfont = true
+  ) => {
     exporting.value = true
     const toImage = format === 'png' ? toPng : toJpeg
 
     const foreignObjectSpans = domRef.querySelectorAll('foreignObject [xmlns]')
-    foreignObjectSpans.forEach(spanRef => spanRef.removeAttribute('xmlns'))
+    foreignObjectSpans.forEach((spanRef) => spanRef.removeAttribute('xmlns'))
 
     setTimeout(() => {
       const config: ExportImageConfig = {
@@ -45,22 +59,24 @@ export default () => {
 
       if (ignoreWebfont) config.fontEmbedCSS = ''
 
-      toImage(domRef, config).then(dataUrl => {
-        exporting.value = false
-        saveAs(dataUrl, `${title.value}.${format}`)
-      }).catch(() => {
-        exporting.value = false
-        message.error('导出图片失败')
-      })
+      toImage(domRef, config)
+        .then((dataUrl) => {
+          exporting.value = false
+          saveAs(dataUrl, `${title.value}.${format}`)
+        })
+        .catch(() => {
+          exporting.value = false
+          message.error('导出图片失败')
+        })
     }, 200)
   }
-  
+
   // 导出pptist文件（特有 .pptist 后缀文件）
   const exportSpecificFile = (_slides: Slide[]) => {
     const blob = new Blob([encrypt(JSON.stringify(_slides))], { type: '' })
     saveAs(blob, `${title.value}.pptist`)
   }
-  
+
   // 导出JSON文件
   const exportJSON = () => {
     const blob = new Blob([JSON.stringify(slides.value)], { type: '' })
@@ -88,10 +104,13 @@ export default () => {
     let indent = 0
 
     const slices: pptxgen.TextProps[] = []
-    const parse = (obj: AST[], baseStyleObj: { [key: string]: string } = {}) => {
-
+    const parse = (
+      obj: AST[],
+      baseStyleObj: { [key: string]: string } = {}
+    ) => {
       for (const item of obj) {
-        const isBlockTag = 'tagName' in item && ['div', 'li', 'p'].includes(item.tagName)
+        const isBlockTag =
+          'tagName' in item && ['div', 'li', 'p'].includes(item.tagName)
 
         if (isBlockTag && slices.length) {
           const lastSlice = slices[slices.length - 1]
@@ -100,7 +119,10 @@ export default () => {
         }
 
         const styleObj = { ...baseStyleObj }
-        const styleAttr = 'attributes' in item ? item.attributes.find(attr => attr.key === 'style') : null
+        const styleAttr =
+          'attributes' in item
+            ? item.attributes.find((attr) => attr.key === 'style')
+            : null
         if (styleAttr && styleAttr.value) {
           const styleArr = styleAttr.value.split(';')
           for (const styleItem of styleArr) {
@@ -124,7 +146,7 @@ export default () => {
             styleObj['vertical-align'] = 'sub'
           }
           if (item.tagName === 'a') {
-            const attr = item.attributes.find(attr => attr.key === 'href')
+            const attr = item.attributes.find((attr) => attr.key === 'href')
             styleObj['href'] = attr?.value || ''
           }
           if (item.tagName === 'ul') {
@@ -138,17 +160,24 @@ export default () => {
           }
           if (item.tagName === 'p') {
             if ('attributes' in item) {
-              const dataIndentAttr = item.attributes.find(attr => attr.key === 'data-indent')
-              if (dataIndentAttr && dataIndentAttr.value) indent = +dataIndentAttr.value
+              const dataIndentAttr = item.attributes.find(
+                (attr) => attr.key === 'data-indent'
+              )
+              if (dataIndentAttr && dataIndentAttr.value)
+                indent = +dataIndentAttr.value
             }
           }
         }
 
         if ('tagName' in item && item.tagName === 'br') {
           slices.push({ text: '', options: { breakLine: true } })
-        }
-        else if ('content' in item) {
-          const text = item.content.replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/\n/g, '')
+        } else if ('content' in item) {
+          const text = item.content
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&gt;/g, '>')
+            .replace(/&lt;/g, '<')
+            .replace(/&amp;/g, '&')
+            .replace(/\n/g, '')
           const options: pptxgen.TextPropsOptions = {}
 
           if (styleObj['font-size']) {
@@ -167,7 +196,9 @@ export default () => {
                 style: 'sng',
               }
             }
-            if (styleObj['text-decoration-line'].indexOf('line-through') !== -1) {
+            if (
+              styleObj['text-decoration-line'].indexOf('line-through') !== -1
+            ) {
               options.strike = 'sngStrike'
             }
           }
@@ -183,13 +214,18 @@ export default () => {
             }
           }
           if (styleObj['vertical-align']) {
-            if (styleObj['vertical-align'] === 'super') options.superscript = true
+            if (styleObj['vertical-align'] === 'super')
+              options.superscript = true
             if (styleObj['vertical-align'] === 'sub') options.subscript = true
           }
-          if (styleObj['text-align']) options.align = styleObj['text-align'] as pptxgen.HAlign
-          if (styleObj['font-weight']) options.bold = styleObj['font-weight'] === 'bold'
-          if (styleObj['font-style']) options.italic = styleObj['font-style'] === 'italic'
-          if (styleObj['font-family']) options.fontFace = styleObj['font-family']
+          if (styleObj['text-align'])
+            options.align = styleObj['text-align'] as pptxgen.HAlign
+          if (styleObj['font-weight'])
+            options.bold = styleObj['font-weight'] === 'bold'
+          if (styleObj['font-style'])
+            options.italic = styleObj['font-style'] === 'italic'
+          if (styleObj['font-family'])
+            options.fontFace = styleObj['font-family']
           if (styleObj['href']) options.hyperlink = { url: styleObj['href'] }
 
           if (bulletFlag && styleObj['list-type'] === 'ol') {
@@ -208,8 +244,7 @@ export default () => {
           }
 
           slices.push({ text, options })
-        }
-        else if ('children' in item) parse(item.children, styleObj)
+        } else if ('children' in item) parse(item.children, styleObj)
       }
     }
     parse(ast)
@@ -218,54 +253,69 @@ export default () => {
 
   type Points = Array<
     | { x: number; y: number; moveTo?: boolean }
-    | { x: number; y: number; curve: { type: 'arc'; hR: number; wR: number; stAng: number; swAng: number } }
-    | { x: number; y: number; curve: { type: 'quadratic'; x1: number; y1: number } }
-    | { x: number; y: number; curve: { type: 'cubic'; x1: number; y1: number; x2: number; y2: number } }
+    | {
+        x: number
+        y: number
+        curve: {
+          type: 'arc'
+          hR: number
+          wR: number
+          stAng: number
+          swAng: number
+        }
+      }
+    | {
+        x: number
+        y: number
+        curve: { type: 'quadratic'; x1: number; y1: number }
+      }
+    | {
+        x: number
+        y: number
+        curve: { type: 'cubic'; x1: number; y1: number; x2: number; y2: number }
+      }
     | { close: true }
   >
 
   // 将SVG路径信息格式化为pptxgenjs所需要的格式
   const formatPoints = (points: SvgPoints, scale = { x: 1, y: 1 }): Points => {
-    return points.map(point => {
+    return points.map((point) => {
       if (point.close !== undefined) {
         return { close: true }
-      }
-      else if (point.type === 'M') {
+      } else if (point.type === 'M') {
         return {
-          x: point.x / INCH_PX_RATIO * scale.x,
-          y: point.y / INCH_PX_RATIO * scale.y,
+          x: (point.x / INCH_PX_RATIO) * scale.x,
+          y: (point.y / INCH_PX_RATIO) * scale.y,
           moveTo: true,
         }
-      }
-      else if (point.curve) {
+      } else if (point.curve) {
         if (point.curve.type === 'cubic') {
           return {
-            x: point.x / INCH_PX_RATIO * scale.x,
-            y: point.y / INCH_PX_RATIO * scale.y,
+            x: (point.x / INCH_PX_RATIO) * scale.x,
+            y: (point.y / INCH_PX_RATIO) * scale.y,
             curve: {
               type: 'cubic',
-              x1: (point.curve.x1 as number) / INCH_PX_RATIO * scale.x,
-              y1: (point.curve.y1 as number) / INCH_PX_RATIO * scale.y,
-              x2: (point.curve.x2 as number) / INCH_PX_RATIO * scale.x,
-              y2: (point.curve.y2 as number) / INCH_PX_RATIO * scale.y,
+              x1: ((point.curve.x1 as number) / INCH_PX_RATIO) * scale.x,
+              y1: ((point.curve.y1 as number) / INCH_PX_RATIO) * scale.y,
+              x2: ((point.curve.x2 as number) / INCH_PX_RATIO) * scale.x,
+              y2: ((point.curve.y2 as number) / INCH_PX_RATIO) * scale.y,
             },
           }
-        }
-        else if (point.curve.type === 'quadratic') {
+        } else if (point.curve.type === 'quadratic') {
           return {
-            x: point.x / INCH_PX_RATIO * scale.x,
-            y: point.y / INCH_PX_RATIO * scale.y,
+            x: (point.x / INCH_PX_RATIO) * scale.x,
+            y: (point.y / INCH_PX_RATIO) * scale.y,
             curve: {
               type: 'quadratic',
-              x1: (point.curve.x1 as number) / INCH_PX_RATIO * scale.x,
-              y1: (point.curve.y1 as number) / INCH_PX_RATIO * scale.y,
+              x1: ((point.curve.x1 as number) / INCH_PX_RATIO) * scale.x,
+              y1: ((point.curve.y1 as number) / INCH_PX_RATIO) * scale.y,
             },
           }
         }
       }
       return {
-        x: point.x / INCH_PX_RATIO * scale.x,
-        y: point.y / INCH_PX_RATIO * scale.y,
+        x: (point.x / INCH_PX_RATIO) * scale.x,
+        y: (point.y / INCH_PX_RATIO) * scale.y,
       }
     })
   }
@@ -281,40 +331,32 @@ export default () => {
     if (h === 0 && v === 0) {
       offset = 4
       angle = 45
-    }
-    else if (h === 0) {
+    } else if (h === 0) {
       if (v > 0) {
         offset = v
         angle = 90
-      }
-      else {
+      } else {
         offset = -v
         angle = 270
       }
-    }
-    else if (v === 0) {
+    } else if (v === 0) {
       if (h > 0) {
         offset = h
         angle = 1
-      }
-      else {
+      } else {
         offset = -h
         angle = 180
       }
-    }
-    else if (h > 0 && v > 0) {
+    } else if (h > 0 && v > 0) {
       offset = Math.max(h, v)
       angle = 45
-    }
-    else if (h > 0 && v < 0) {
+    } else if (h > 0 && v < 0) {
       offset = Math.max(h, -v)
       angle = 315
-    }
-    else if (h < 0 && v > 0) {
+    } else if (h < 0 && v > 0) {
       offset = Math.max(-h, v)
       angle = 135
-    }
-    else if (h < 0 && v < 0) {
+    } else if (h < 0 && v < 0) {
       offset = Math.max(-h, -v)
       angle = 225
     }
@@ -330,22 +372,26 @@ export default () => {
   }
 
   // 获取边框配置
-  const getOutlineOption = (outline: PPTElementOutline): pptxgen.ShapeLineProps => {
+  const getOutlineOption = (
+    outline: PPTElementOutline
+  ): pptxgen.ShapeLineProps => {
     const c = formatColor(outline?.color || '#000000')
     return {
-      color: c.color, 
+      color: c.color,
       transparency: (1 - c.alpha) * 100,
-      width: (outline.width || 1) * PT_PX_RATIO, 
+      width: (outline.width || 1) * PT_PX_RATIO,
       dashType: outline.style === 'solid' ? 'solid' : 'dash',
     }
   }
 
   // 获取超链接配置
-  const getLinkOption = (link: PPTElementLink): pptxgen.HyperlinkProps | null => {
+  const getLinkOption = (
+    link: PPTElementLink
+  ): pptxgen.HyperlinkProps | null => {
     const { type, target } = link
     if (type === 'web') return { url: target }
     if (type === 'slide') {
-      const index = slides.value.findIndex(slide => slide.id === target)
+      const index = slides.value.findIndex((slide) => slide.id === target)
       if (index !== -1) return { slide: index + 1 }
     }
 
@@ -353,7 +399,11 @@ export default () => {
   }
 
   // 导出PPTX文件
-  const exportPPTX = (_slides: Slide[], masterOverwrite: boolean, ignoreMedia: boolean) => {
+  const exportPPTX = (
+    _slides: Slide[],
+    masterOverwrite: boolean,
+    ignoreMedia: boolean
+  ) => {
     exporting.value = true
     const pptx = new pptxgen()
 
@@ -362,13 +412,14 @@ export default () => {
     else if (viewportRatio.value === 0.70710678) {
       pptx.defineLayout({ name: 'A3', width: 10, height: 7.0710678 })
       pptx.layout = 'A3'
-    }
-    else pptx.layout = 'LAYOUT_16x9'
+    } else pptx.layout = 'LAYOUT_16x9'
 
     if (masterOverwrite) {
-      const { color: bgColor, alpha: bgAlpha } = formatColor(theme.value.backgroundColor)
+      const { color: bgColor, alpha: bgAlpha } = formatColor(
+        theme.value.backgroundColor
+      )
       pptx.defineSlideMaster({
-        title: 'PPTIST_MASTER',
+        title: 'Paperport_MASTER',
         background: { color: bgColor, transparency: (1 - bgAlpha) * 100 },
       })
     }
@@ -380,16 +431,20 @@ export default () => {
         const background = slide.background
         if (background.type === 'image' && background.image) {
           pptxSlide.background = { data: background.image }
-        }
-        else if (background.type === 'solid' && background.color) {
+        } else if (background.type === 'solid' && background.color) {
           const c = formatColor(background.color)
-          pptxSlide.background = { color: c.color, transparency: (1 - c.alpha) * 100 }
-        }
-        else if (background.type === 'gradient' && background.gradientColor) {
+          pptxSlide.background = {
+            color: c.color,
+            transparency: (1 - c.alpha) * 100,
+          }
+        } else if (background.type === 'gradient' && background.gradientColor) {
           const [color1, color2] = background.gradientColor
           const color = tinycolor.mix(color1, color2).toHexString()
           const c = formatColor(color)
-          pptxSlide.background = { color: c.color, transparency: (1 - c.alpha) * 100 }
+          pptxSlide.background = {
+            color: c.color,
+            transparency: (1 - c.alpha) * 100,
+          }
         }
       }
       if (slide.remark) pptxSlide.addNotes(slide.remark)
@@ -420,20 +475,24 @@ export default () => {
           if (el.fill) {
             const c = formatColor(el.fill)
             const opacity = el.opacity === undefined ? 1 : el.opacity
-            options.fill = { color: c.color, transparency: (1 - c.alpha * opacity) * 100 }
+            options.fill = {
+              color: c.color,
+              transparency: (1 - c.alpha * opacity) * 100,
+            }
           }
-          if (el.defaultColor) options.color = formatColor(el.defaultColor).color
+          if (el.defaultColor)
+            options.color = formatColor(el.defaultColor).color
           if (el.defaultFontName) options.fontFace = el.defaultFontName
           if (el.shadow) options.shadow = getShadowOption(el.shadow)
           if (el.outline?.width) options.line = getOutlineOption(el.outline)
-          if (el.opacity !== undefined) options.transparency = (1 - el.opacity) * 100
-          if (el.paragraphSpace !== undefined) options.paraSpaceBefore = el.paragraphSpace * PT_PX_RATIO
+          if (el.opacity !== undefined)
+            options.transparency = (1 - el.opacity) * 100
+          if (el.paragraphSpace !== undefined)
+            options.paraSpaceBefore = el.paragraphSpace * PT_PX_RATIO
           if (el.vertical) options.vert = 'eaVert'
 
           pptxSlide.addText(textProps, options)
-        }
-
-        else if (el.type === 'image') {
+        } else if (el.type === 'image') {
           const options: pptxgen.ImageProps = {
             path: el.src,
             x: el.left / INCH_PX_RATIO,
@@ -448,7 +507,8 @@ export default () => {
             const linkOption = getLinkOption(el.link)
             if (linkOption) options.hyperlink = linkOption
           }
-          if (el.filters?.opacity) options.transparency = 100 - parseInt(el.filters?.opacity)
+          if (el.filters?.opacity)
+            options.transparency = 100 - parseInt(el.filters?.opacity)
           if (el.clip) {
             if (el.clip.shape === 'ellipse') options.rounding = true
 
@@ -464,19 +524,19 @@ export default () => {
 
             options.sizing = {
               type: 'crop',
-              x: startX / INCH_PX_RATIO * originW / INCH_PX_RATIO,
-              y: startY / INCH_PX_RATIO * originH / INCH_PX_RATIO,
-              w: (endX - startX) / INCH_PX_RATIO * originW / INCH_PX_RATIO,
-              h: (endY - startY) / INCH_PX_RATIO * originH / INCH_PX_RATIO,
+              x: ((startX / INCH_PX_RATIO) * originW) / INCH_PX_RATIO,
+              y: ((startY / INCH_PX_RATIO) * originH) / INCH_PX_RATIO,
+              w: (((endX - startX) / INCH_PX_RATIO) * originW) / INCH_PX_RATIO,
+              h: (((endY - startY) / INCH_PX_RATIO) * originH) / INCH_PX_RATIO,
             }
           }
 
           pptxSlide.addImage(options)
-        }
-
-        else if (el.type === 'shape') {
+        } else if (el.type === 'shape') {
           if (el.special) {
-            const svgRef = document.querySelector(`.thumbnail-list .base-element-${el.id} svg`) as HTMLElement
+            const svgRef = document.querySelector(
+              `.thumbnail-list .base-element-${el.id} svg`
+            ) as HTMLElement
             const base64SVG = svg2Base64(svgRef)
 
             const options: pptxgen.ImageProps = {
@@ -493,23 +553,25 @@ export default () => {
             }
 
             pptxSlide.addImage(options)
-          }
-          else {
+          } else {
             const scale = {
               x: el.width / el.viewBox[0],
               y: el.height / el.viewBox[1],
             }
             const points = formatPoints(toPoints(el.path), scale)
-  
+
             const fillColor = formatColor(el.fill)
             const opacity = el.opacity === undefined ? 1 : el.opacity
-  
+
             const options: pptxgen.ShapeProps = {
               x: el.left / INCH_PX_RATIO,
               y: el.top / INCH_PX_RATIO,
               w: el.width / INCH_PX_RATIO,
               h: el.height / INCH_PX_RATIO,
-              fill: { color: fillColor.color, transparency: (1 - fillColor.alpha * opacity) * 100 },
+              fill: {
+                color: fillColor.color,
+                transparency: (1 - fillColor.alpha * opacity) * 100,
+              },
               points,
             }
             if (el.flipH) options.flipH = el.flipH
@@ -539,14 +601,14 @@ export default () => {
               valign: el.text.align,
             }
             if (el.rotate) options.rotate = el.rotate
-            if (el.text.defaultColor) options.color = formatColor(el.text.defaultColor).color
-            if (el.text.defaultFontName) options.fontFace = el.text.defaultFontName
+            if (el.text.defaultColor)
+              options.color = formatColor(el.text.defaultColor).color
+            if (el.text.defaultFontName)
+              options.fontFace = el.text.defaultFontName
 
             pptxSlide.addText(textProps, options)
           }
-        }
-
-        else if (el.type === 'line') {
+        } else if (el.type === 'line') {
           const path = getLineElementPath(el)
           const points = formatPoints(toPoints(path))
           const { minX, maxX, minY, maxY } = getElementRange(el)
@@ -558,9 +620,9 @@ export default () => {
             w: (maxX - minX) / INCH_PX_RATIO,
             h: (maxY - minY) / INCH_PX_RATIO,
             line: {
-              color: c.color, 
+              color: c.color,
               transparency: (1 - c.alpha) * 100,
-              width: el.width * PT_PX_RATIO, 
+              width: el.width * PT_PX_RATIO,
               dashType: el.style === 'solid' ? 'solid' : 'dash',
               beginArrowType: el.points[0] ? 'arrow' : 'none',
               endArrowType: el.points[1] ? 'arrow' : 'none',
@@ -570,9 +632,7 @@ export default () => {
           if (el.shadow) options.shadow = getShadowOption(el.shadow)
 
           pptxSlide.addShape('custGeom' as pptxgen.ShapeType, options)
-        }
-
-        else if (el.type === 'chart') {
+        } else if (el.type === 'chart') {
           const chartData = []
           for (let i = 0; i < el.data.series.length; i++) {
             const item = el.data.series[i]
@@ -584,23 +644,36 @@ export default () => {
           }
 
           let chartColors: string[] = []
-          if (el.themeColor.length === 10) chartColors = el.themeColor.map(color => formatColor(color).color)
-          else if (el.themeColor.length === 1) chartColors = tinycolor(el.themeColor[0]).analogous(10).map(color => formatColor(color.toHexString()).color)
+          if (el.themeColor.length === 10)
+            chartColors = el.themeColor.map((color) => formatColor(color).color)
+          else if (el.themeColor.length === 1)
+            chartColors = tinycolor(el.themeColor[0])
+              .analogous(10)
+              .map((color) => formatColor(color.toHexString()).color)
           else {
             const len = el.themeColor.length
-            const supplement = tinycolor(el.themeColor[len - 1]).analogous(10 + 1 - len).map(color => color.toHexString())
-            chartColors = [...el.themeColor.slice(0, len - 1), ...supplement].map(color => formatColor(color).color)
+            const supplement = tinycolor(el.themeColor[len - 1])
+              .analogous(10 + 1 - len)
+              .map((color) => color.toHexString())
+            chartColors = [
+              ...el.themeColor.slice(0, len - 1),
+              ...supplement,
+            ].map((color) => formatColor(color).color)
           }
-          
+
           const options: pptxgen.IChartOpts = {
             x: el.left / INCH_PX_RATIO,
             y: el.top / INCH_PX_RATIO,
             w: el.width / INCH_PX_RATIO,
             h: el.height / INCH_PX_RATIO,
-            chartColors: el.chartType === 'pie' ? chartColors : chartColors.slice(0, el.data.series.length),
+            chartColors:
+              el.chartType === 'pie'
+                ? chartColors
+                : chartColors.slice(0, el.data.series.length),
           }
 
-          if (el.fill) options.plotArea = { fill: { color: formatColor(el.fill).color } }
+          if (el.fill)
+            options.plotArea = { fill: { color: formatColor(el.fill).color } }
           if (el.legend) {
             options.showLegend = true
             options.legendPos = el.legend === 'top' ? 't' : 'b'
@@ -612,31 +685,30 @@ export default () => {
           if (el.chartType === 'bar') {
             type = pptx.ChartType.bar
             options.barDir = el.options?.horizontalBars ? 'bar' : 'col'
-          }
-          else if (el.chartType === 'line') {
+          } else if (el.chartType === 'line') {
             if (el.options?.showArea) type = pptx.ChartType.area
             else if (el.options?.showLine === false) {
               type = pptx.ChartType.scatter
 
-              chartData.unshift({ name: 'X-Axis', values: Array(el.data.series[0].length).fill(0).map((v, i) => i) })
+              chartData.unshift({
+                name: 'X-Axis',
+                values: Array(el.data.series[0].length)
+                  .fill(0)
+                  .map((v, i) => i),
+              })
               options.lineSize = 0
-            }
-            else type = pptx.ChartType.line
+            } else type = pptx.ChartType.line
 
             if (el.options?.lineSmooth) options.lineSmooth = true
-          }
-          else if (el.chartType === 'pie') {
+          } else if (el.chartType === 'pie') {
             if (el.options?.donut) {
               type = pptx.ChartType.doughnut
               options.holeSize = 75
-            }
-            else type = pptx.ChartType.pie
+            } else type = pptx.ChartType.pie
           }
-          
-          pptxSlide.addChart(type, chartData, options)
-        }
 
-        else if (el.type === 'table') {
+          pptxSlide.addChart(type, chartData, options)
+        } else if (el.type === 'table') {
           const hiddenCells = []
           for (let i = 0; i < el.data.length; i++) {
             const rowData = el.data[i]
@@ -645,7 +717,12 @@ export default () => {
               const cell = rowData[j]
               if (cell.colspan > 1 || cell.rowspan > 1) {
                 for (let row = i; row < i + cell.rowspan; row++) {
-                  for (let col = row === i ? j + 1 : j; col < j + cell.colspan; col++) hiddenCells.push(`${row}_${col}`)
+                  for (
+                    let col = row === i ? j + 1 : j;
+                    col < j + cell.colspan;
+                    col++
+                  )
+                    hiddenCells.push(`${row}_${col}`)
                 }
               }
             }
@@ -658,7 +735,9 @@ export default () => {
           let subThemeColors: FormatColor[] = []
           if (theme) {
             themeColor = formatColor(theme.color)
-            subThemeColors = getTableSubThemeColor(theme.color).map(item => formatColor(item))
+            subThemeColors = getTableSubThemeColor(theme.color).map((item) =>
+              formatColor(item)
+            )
           }
 
           for (let i = 0; i < el.data.length; i++) {
@@ -676,7 +755,9 @@ export default () => {
                 align: cell.style?.align || 'left',
                 valign: 'middle',
                 fontFace: cell.style?.fontname || '微软雅黑',
-                fontSize: (cell.style?.fontsize ? parseInt(cell.style?.fontsize) : 14) * PT_PX_RATIO,
+                fontSize:
+                  (cell.style?.fontsize ? parseInt(cell.style?.fontsize) : 14) *
+                  PT_PX_RATIO,
               }
               if (theme && themeColor) {
                 let c: FormatColor
@@ -684,17 +765,25 @@ export default () => {
                 else c = subThemeColors[0]
 
                 if (theme.rowHeader && i === 0) c = themeColor
-                else if (theme.rowFooter && i === el.data.length - 1) c = themeColor
+                else if (theme.rowFooter && i === el.data.length - 1)
+                  c = themeColor
                 else if (theme.colHeader && j === 0) c = themeColor
                 else if (theme.colFooter && j === row.length - 1) c = themeColor
 
-                cellOptions.fill = { color: c.color, transparency: (1 - c.alpha) * 100 }
+                cellOptions.fill = {
+                  color: c.color,
+                  transparency: (1 - c.alpha) * 100,
+                }
               }
               if (cell.style?.backcolor) {
                 const c = formatColor(cell.style.backcolor)
-                cellOptions.fill = { color: c.color, transparency: (1 - c.alpha) * 100 }
+                cellOptions.fill = {
+                  color: c.color,
+                  transparency: (1 - c.alpha) * 100,
+                }
               }
-              if (cell.style?.color) cellOptions.color = formatColor(cell.style.color).color
+              if (cell.style?.color)
+                cellOptions.color = formatColor(cell.style.color).color
 
               if (!hiddenCells.includes(`${i}_${j}`)) {
                 _row.push({
@@ -711,7 +800,7 @@ export default () => {
             y: el.top / INCH_PX_RATIO,
             w: el.width / INCH_PX_RATIO,
             h: el.height / INCH_PX_RATIO,
-            colW: el.colWidths.map(item => el.width * item / INCH_PX_RATIO),
+            colW: el.colWidths.map((item) => (el.width * item) / INCH_PX_RATIO),
           }
           if (el.theme) options.fill = { color: '#ffffff' }
           if (el.outline.width && el.outline.color) {
@@ -723,10 +812,10 @@ export default () => {
           }
 
           pptxSlide.addTable(tableData, options)
-        }
-        
-        else if (el.type === 'latex') {
-          const svgRef = document.querySelector(`.thumbnail-list .base-element-${el.id} svg`) as HTMLElement
+        } else if (el.type === 'latex') {
+          const svgRef = document.querySelector(
+            `.thumbnail-list .base-element-${el.id} svg`
+          ) as HTMLElement
           const base64SVG = svg2Base64(svgRef)
 
           const options: pptxgen.ImageProps = {
@@ -742,9 +831,10 @@ export default () => {
           }
 
           pptxSlide.addImage(options)
-        }
-        
-        else if (!ignoreMedia && (el.type === 'video' || el.type === 'audio')) {
+        } else if (
+          !ignoreMedia &&
+          (el.type === 'video' || el.type === 'audio')
+        ) {
           const options: pptxgen.MediaProps = {
             x: el.left / INCH_PX_RATIO,
             y: el.top / INCH_PX_RATIO,
@@ -758,10 +848,13 @@ export default () => {
           const extMatch = el.src.match(/\.([a-zA-Z0-9]+)(?:[\?#]|$)/)
           if (extMatch && extMatch[1]) options.extn = extMatch[1]
           else if (el.ext) options.extn = el.ext
-          
+
           const videoExts = ['avi', 'mp4', 'm4v', 'mov', 'wmv']
           const audioExts = ['mp3', 'm4a', 'mp4', 'wav', 'wma']
-          if (options.extn && [...videoExts, ...audioExts].includes(options.extn)) {
+          if (
+            options.extn &&
+            [...videoExts, ...audioExts].includes(options.extn)
+          ) {
             pptxSlide.addMedia(options)
           }
         }
@@ -769,10 +862,13 @@ export default () => {
     }
 
     setTimeout(() => {
-      pptx.writeFile({ fileName: `${title.value}.pptx` }).then(() => exporting.value = false).catch(() => {
-        exporting.value = false
-        message.error('导出失败')
-      })
+      pptx
+        .writeFile({ fileName: `${title.value}.pptx` })
+        .then(() => (exporting.value = false))
+        .catch(() => {
+          exporting.value = false
+          message.error('导出失败')
+        })
     }, 200)
   }
 

@@ -1,18 +1,26 @@
 <template>
   <div class="mobile-preview" ref="mobileRef">
     <div class="thumbnail-list">
-      <div class="thumbnail-item" v-for="(slide, index) in slides" :key="slide.id">
-        <ThumbnailSlide 
-          :slide="slide" 
-          :size="screenWidth - 20" 
-          :visible="index < slidesLoadLimit" 
+      <div
+        class="thumbnail-item"
+        v-for="(slide, index) in slides"
+        :key="slide.id"
+      >
+        <ThumbnailSlide
+          :slide="slide"
+          :size="screenWidth - 20"
+          :visible="index < slidesLoadLimit"
         />
       </div>
     </div>
     <div class="menu">
-      <div class="menu-item" @click="changeMode('editor')"><IconEdit class="icon" /> 编辑</div>
-      <Divider type="vertical" style="height: 30px;" />
-      <div class="menu-item" @click="changeMode('player')"><IconFullScreenPlay class="icon" /> 播放</div>
+      <div class="menu-item" @click="changeMode('editor')">
+        <IconEdit class="icon" /> Edit
+      </div>
+      <Divider type="vertical" style="height: 30px" />
+      <div class="menu-item" @click="changeMode('player')">
+        <IconFullScreenPlay class="icon" /> Play
+      </div>
     </div>
   </div>
 </template>
